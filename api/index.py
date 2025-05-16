@@ -1,20 +1,28 @@
-from flask import Flask, render_template_string, request, redirect, session, url_for
+from flask import Flask, render_template_string, request, redirect, session, url_for, send_file
 from serverless_wsgi import handle_request
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 import os
 import json
+from io import BytesIO
 
 # Flask setup
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey123')  # Use environment variable for security
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey123')
 
 # Firebase setup
 firebase_creds = json.loads(os.getenv("FIREBASE_CREDENTIALS"))
 cred = credentials.Certificate(firebase_creds)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
+
+# Favicon route to prevent 500 errors
+@app.route('/favicon.ico')
+def favicon():
+    # Return a minimal 1x1 transparent PNG as a placeholder favicon
+    img = BytesIO(b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x00\x00\x02\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00')
+    return send_file(img, mimetype='image/png')
 
 # HTML Templates
 HTML_TEMPLATE = """
@@ -396,7 +404,7 @@ def add_group():
         return redirect('/login')
     chat_id = request.form.get('chat_id')
     try:
-        chat_id = int(chat_id)  # Ensure input is a number
+        chat_id = int(chat_id)
         db.collection("allowed_chats").document(str(chat_id)).set({
             "chat_id": chat_id,
             "added_at": firestore.SERVER_TIMESTAMP
