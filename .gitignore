@@ -1,0 +1,4 @@
+*.pyc
+__pycache__/
+.env
+souhail-5a737-firebase-adminsdk-fbsvc-c42b1b7dd8.json
